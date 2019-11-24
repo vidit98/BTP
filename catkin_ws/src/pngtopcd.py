@@ -3,18 +3,18 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 import sys
 import rospy
-#sys.path.append('/usr/local/lib/python3.4/site-packages')
+
 
 
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
 from sensor_msgs.msg import Image
 import std_msgs
-from cv_bridge import CvBridge, CvBridgeError
+
 
 import cv2
 import message_filters
-
+from cv_bridge import CvBridge, CvBridgeError
 class SurfaceWrapper(object):
 
 	def __init__(self):
@@ -50,11 +50,12 @@ class SurfaceWrapper(object):
 	    frame_threshold = cv2.inRange(img, (self.Yl, self.Cbl, self.Crl), (self.Yh, self.Cbh, self.Crh))
 	    # cv2.imshow("s", frame_threshold)
 	    # cv2.waitKey(0)
-	    image, contours, _ = cv2.findContours(frame_threshold,  cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	    image, contours = cv2.findContours(frame_threshold,  cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	    l = []
+	    # print(contours)
 	    for c in contours:
 	        
-	        m = np.mean(c, axis=0)[0]
+	        m = np.mean(c, axis=0)
 	        if m[0] > 250 and m[0] < 290:
 	            if m[1] > 260 and m[1] < 350:
 	                l.append(c)
@@ -74,20 +75,19 @@ class SurfaceWrapper(object):
 		# print("INITIAL" ,np.max(np.array(color_raw)), np.min(np.array(depth_raw)))
 		color_raw = np.array(color_raw).astype("uint8")
 		depth_raw = np.array(depth_raw).astype("uint16")
-		mask = self.segment(color_raw)
+		#mask = self.segment(color_raw)
 		
-		depth_raw = cv2.bitwise_and(depth_raw, mask)
+		#depth_raw = cv2.bitwise_and(depth_raw, mask)
 
 		color_raw = o3d.geometry.Image(color_raw)
 		depth_raw = o3d.geometry.Image(depth_raw)
 		
-		rgbd_image = o3d.geometry.create_rgbd_image_from_color_and_depth(
-        color_raw, depth_raw, depth_scale=1000.0)
+		rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(color_raw, depth_raw, depth_scale=1000.0)
 	
 
 		intrinsic = o3d.camera.PinholeCameraIntrinsic()
 		intrinsic.set_intrinsics(640, 480, 554.3826904296859, 554.3826904296875, 320, 240)
-		cloud = o3d.geometry.create_point_cloud_from_rgbd_image(rgbd_image,intrinsic)
+		cloud = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image,intrinsic)
 		print(cloud.points)
 		#print(np.min(np.array(cloud.points)[:,0]))
 		

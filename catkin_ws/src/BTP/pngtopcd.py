@@ -52,17 +52,17 @@ class SurfaceWrapper(object):
 	    # cv2.waitKey(0)
 	    image, contours = cv2.findContours(frame_threshold,  cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	    l = []
-	    # print(contours)
+	    print("Shape",contours.shape)
 	    for c in contours:
 	        
-	        m = np.mean(c, axis=0)
-	        if m[0] > 250 and m[0] < 290:
-	            if m[1] > 260 and m[1] < 350:
-	                l.append(c)
-	    mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint16)
-	    ignore_mask_color = 256*256 -1
-	    print(l[0].shape)
-	    cv2.fillPoly(mask, l, ignore_mask_color)
+	        # m = np.mean(c, axis=0)
+	        # if m[0] > 250 and m[0] < 290:
+	        #     if m[1] > 260 and m[1] < 350:
+	        l.append(c)
+	    mask = np.zeros((img.shape[0], img.shape[1]))
+	    ignore_mask_color = 255
+	    print(type(l[0][0][0]))
+	    cv2.fillPoly(mask, np.array([(1,1),(1,2), (2,1), (2,2)]), ignore_mask_color)
 	   
 	    return mask
 
@@ -75,7 +75,7 @@ class SurfaceWrapper(object):
 		# print("INITIAL" ,np.max(np.array(color_raw)), np.min(np.array(depth_raw)))
 		color_raw = np.array(color_raw).astype("uint8")
 		depth_raw = np.array(depth_raw).astype("uint16")
-		#mask = self.segment(color_raw)
+		mask = self.segment(color_raw)
 		
 		#depth_raw = cv2.bitwise_and(depth_raw, mask)
 
@@ -89,10 +89,12 @@ class SurfaceWrapper(object):
 		intrinsic.set_intrinsics(640, 480, 554.3826904296859, 554.3826904296875, 320, 240)
 		cloud = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image,intrinsic)
 		print(cloud.points)
+		cloud=cloud.voxel_down_sample(0.04)
+		#print(cloud.points)
 		#print(np.min(np.array(cloud.points)[:,0]))
 		
 		self.ptcld = point_cloud2.create_cloud(self.h, self.fields, cloud.points)
-		
+		#downpcd = self.ptcld.uniform_down_sample(10)
 
 		self.pub.publish(self.ptcld)
 

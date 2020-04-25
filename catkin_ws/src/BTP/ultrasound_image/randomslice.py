@@ -1,14 +1,9 @@
-import rospy
-import tf
-from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
 import numpy as np
 import os
 import cv2
 import matplotlib.pyplot as plt
 
 
-bridge = CvBridge()
 # to reaf the files from XY dir or XY_Cart dir.
 temp = []
 for i in range(128):
@@ -28,7 +23,7 @@ idy = 0
 idz = 0
 
 #for a plane which is 45 degress, and cuts the volume from the middle 
-inc = 128/(128**2 + 128**2)**(1/2)
+inc = 128.0/(128**2 + 128**2)**(1.0/2)
 
 points = []
 while(idy<=127 and idz<=127):

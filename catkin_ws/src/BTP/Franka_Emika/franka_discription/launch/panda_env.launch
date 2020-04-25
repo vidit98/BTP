@@ -16,6 +16,7 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen" />
 
     <node name="joint_state_desired_publisher" pkg="topic_tools" type="relay" args="joint_states joint_states_desired" />
+    <node name="human_frame_broadcaster" pkg="tf" type="static_transform_publisher" args="0.958983 0.862875 0.782241 0.99981 -0.00023 -0.01362 0.01376 human world 100" />
 
 
 </launch>

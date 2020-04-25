@@ -1323,6 +1323,7 @@
       <pose frame=''>0.932766 0.20514 0 0 -0 0</pose>
     </model>
     <model name='human'>
+      <publishTf>true</publishTf>
       <static>1</static>
       <link name='link'>
         <visual name='visual'>

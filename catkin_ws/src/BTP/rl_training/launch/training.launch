@@ -2,5 +2,5 @@
     <!-- This version uses the openai_ros environments -->
     <rosparam command="load" file="$(find rl_training)/config/franka_emika_task.yaml" />
     <!-- Launch the training system -->
-    <node pkg="rl_training" name="test_RL_PANDA" type="training.py" output="screen"/>
+    <node pkg="rl_training" name="test_RL_PANDA" type="sac_training.py" output="screen"/>
 </launch>

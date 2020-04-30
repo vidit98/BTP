@@ -217,7 +217,7 @@ class SAC(object):
 			for target_param, param in zip(self.target_soft_q_net2.parameters(), self.soft_q_net2.parameters()):
 				target_param.data.copy_(target_param.data * (1.0 - self.tau) + param.data * self.tau)
 
-def train(agent, steps_per_epoch=1000, epochs=100, start_steps=1000, max_ep_len=200):
+def train(agent, steps_per_epoch=1000, epochs=1000, start_steps=1000, max_ep_len=500):
 
 	start_time = time.time()
 	total_rewards = []

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import math
 import rospy
+from geometry_msgs.msg import Pose
 import time
 import random
 import gym
@@ -10,7 +11,7 @@ from torch import nn, optim
 import torch.nn.functional as F
 from torch.distributions import Normal
 from openai_ros.openai_ros_common import StartOpenAI_ROS_Environment
-#import mathplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 class ReplayBuffer:
 	def __init__(self, capacity):
@@ -148,6 +149,11 @@ class SAC(object):
 		self.discount = discount
 		self.batch_size = batch_size
 		self.tau = tau
+		self.writer = SummaryWriter('/home/yash/catkin_ws/src/BTP/rl_training/')
+		self.alpha_loss = None
+		self.policy_loss = None
+		self.q1_loss = None
+		self.q2_loss = None
 
 	def get_action(self, state, deterministic=False, explore=False):
 		state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
@@ -172,17 +178,18 @@ class SAC(object):
 			new_actions, policy_mean, policy_log_std, log_pi, _ = self.policy_net(state)
 
 			if self.auto_alpha:
-				alpha_loss = -(self.log_alpha * (log_pi + self.target_entropy).detach()).mean()
+				self.alpha_loss = -(self.log_alpha * (log_pi + self.target_entropy).detach()).mean()
 				self.alpha_optimizer.zero_grad()
-				alpha_loss.backward()
+				self.alpha_loss.backward()
 				self.alpha_optimizer.step()
 				alpha = self.log_alpha.exp()
 			else:
-				alpha_loss = 0
+				self.alpha_loss = 0
 				alpha = 0.2
 
 			q_new_actions = torch.min(self.soft_q_net1(state, new_actions), self.soft_q_net2(state, new_actions))
-			policy_loss = (alpha * log_pi - q_new_actions).mean()
+
+			self.policy_loss = (alpha * log_pi - q_new_actions).mean()
 
 			q1_pred = self.soft_q_net1(state, action)
 			q2_pred = self.soft_q_net2(state, action)
@@ -191,24 +198,24 @@ class SAC(object):
 
 			#print q1_pred.shape
 
-			target_q_values = torch.min(self.target_soft_q_net1(next_state, new_next_actions), self.target_soft_q_net2(next_state, new_next_actions),) - alpha * new_log_pi
+			target_q_values = torch.min(self.target_soft_q_net1(next_state, new_next_actions), self.target_soft_q_net2(next_state, new_next_actions)) - alpha * new_log_pi
 
 			#print target_q_values.shape
 			
 			q_target = reward + (1 - done) * self.discount * target_q_values
-			q1_loss = self.soft_qf_criterion(q1_pred, q_target.detach())
-			q2_loss = self.soft_qf_criterion(q2_pred, q_target.detach())
+			self.q1_loss = self.soft_qf_criterion(q1_pred, q_target.detach())
+			self.q2_loss = self.soft_qf_criterion(q2_pred, q_target.detach())
 
 			self.soft_q_optimizer1.zero_grad()
-			q1_loss.backward()
+			self.q1_loss.backward()
 			self.soft_q_optimizer1.step()
 
 			self.soft_q_optimizer2.zero_grad()
-			q2_loss.backward()
+			self.q2_loss.backward()
 			self.soft_q_optimizer2.step()
 
 			self.policy_optimizer.zero_grad()
-			policy_loss.backward()
+			self.policy_loss.backward()
 			self.policy_optimizer.step()
 
 			for target_param, param in zip(self.target_soft_q_net1.parameters(), self.soft_q_net1.parameters()):
@@ -217,12 +224,19 @@ class SAC(object):
 			for target_param, param in zip(self.target_soft_q_net2.parameters(), self.soft_q_net2.parameters()):
 				target_param.data.copy_(target_param.data * (1.0 - self.tau) + param.data * self.tau)
 
-def train(agent, steps_per_epoch=1000, epochs=1000, start_steps=1000, max_ep_len=500):
+			
+
+
+def train(agent, steps_per_epoch=1000, epochs=200, start_steps=10000, max_ep_len=1000):
 
 	start_time = time.time()
+	
 	total_rewards = []
 	avg_reward = None
-
+	goal_point = Pose()
+	goal_pub = rospy.Publisher("panda/goal_point", Pose, queue_size=1)
+	goal_point.position.x, goal_point.position.y, goal_point.position.z = [random.uniform(0.3,0.5) for _ in xrange(3)]
+	goal_pub.publish(goal_point)
 	o,r,d,ep_reward,ep_len,ep_num = env.reset(), 0, False, 0, 0, 1
 
 	total_steps = steps_per_epoch * epochs
@@ -246,13 +260,24 @@ def train(agent, steps_per_epoch=1000, epochs=1000, start_steps=1000, max_ep_len
 
 			if not explore:
 				agent.update(ep_len)
+				agent.writer.add_scalar('Train/alpha_loss', agent.alpha_loss.item(), ep_num)
+				agent.writer.add_scalar('Train/q1_loss', agent.q1_loss.item(), ep_num)
+				agent.writer.add_scalar('Train/q2_loss', agent.q2_loss.item(), ep_num)
+				agent.writer.add_scalar('Train/policy_loss', agent.policy_loss.item(), ep_num)
+				agent.writer.flush()
+
 
 			total_rewards.append(ep_reward)
 			avg_reward = np.mean(total_rewards[-100:])
+			
+			agent.writer.add_scalar('avg_reward', avg_reward, ep_num)
+			agent.writer.flush()
 
 			print("Steps:{} Episode:{} Reward:{} Avg Reward:{}".format(t,ep_num,ep_reward,avg_reward))
 
 			o,r,d,ep_reward,ep_len = env.reset(), 0, False, 0, 0
+			goal_point.position.x, goal_point.position.y, goal_point.position.z = [random.uniform(0.3,0.5) for _ in xrange(3)]
+			goal_pub.publish(goal_point)
 			ep_num += 1
 
 		if t>0 and t%steps_per_epoch == 0:

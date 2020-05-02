@@ -9,6 +9,18 @@
             <material>Gazebo/Grey</material>
             <mu1>0.2</mu1>
             <mu2>0.2</mu2>
+            <!-- <sensor name="contact_sensor" type="contact" always_on="true" update_rate="100.0">
+                <contact>
+                    <collision> __default__</collision>
+                </contact>
+
+                <plugin name="plugin_1" filename="libgazebo_ros_bumper.so">
+                    <alwaysOn>true</alwaysOn>
+                    <updateRate>100.0</updateRate>
+                    <frameName>world</frameName>
+                    <bumperTopicName>panda_contact/link0</bumperTopicName>
+                </plugin>
+            </sensor> -->
         </gazebo>
 
         <!-- Link1 -->
@@ -84,13 +96,6 @@
         <!-- LinkLeftFinger -->
         <gazebo reference="${robot_name}_leftfinger">
             <material>Gazebo/Grey</material>
-            <mu1>0.2</mu1>
-            <mu2>0.2</mu2>
-        </gazebo>
-
-
-        <gazebo reference="${robot_name}_probe">
-            <material>Gazebo/Red</material>
             <mu1>0.2</mu1>
             <mu2>0.2</mu2>
         </gazebo>

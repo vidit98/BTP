@@ -1132,7 +1132,7 @@
       <allow_auto_disable>1</allow_auto_disable>
       <pose frame=''>0.0000003 0 0 0 0 0</pose>
     </model>
-    <model name='table_conference_3'>
+    <!-- model name='table_conference_3'>
       <link name='link_6'>
         <visual name='visual'>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -1365,7 +1365,7 @@
         <kinematic>0</kinematic>
       </link>
       <pose frame=''>0.958983 0.862875 0.782241 -0.004391 -1.56068 1.57667</pose>
-    </model>
+    </model> -->
     <light name='user_directional_light_0' type='directional'>
       <pose frame=''>7.29117 -0.110751 1 0 -0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
@@ -1394,7 +1394,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='human'>
+      <!-- <model name='human'>
         <pose frame=''>0.958983 0.862875 0.782241 -0.004391 -1.56068 1.57667</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -1403,7 +1403,7 @@
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
-      </model>
+      </model> -->
       <model name='office_small'>
         <pose frame=''>-0.170582 -0.321472 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1560,7 +1560,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='table_conference_3'>
+      <!-- <model name='table_conference_3'>
         <pose frame=''>0.932766 0.20514 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link_6'>
@@ -1587,7 +1587,7 @@
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
-      </model>
+      </model> -->
       <light name='sun'>
         <pose frame=''>0 0 10 0 -0 0</pose>
       </light>
